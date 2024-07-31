@@ -1,11 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <h1>hell yeah</h1>
-</body>
-</html>
+<!-- home.html -->
+
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block main %}
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1 class="display-4">Welcome to the home page!</h1>
+        <p class="lead">This is a protected area. You need to be logged in to access this page.</p>
+        <p><a href="/logout" class="btn btn-secondary">Logout</a></p>
+      </div>
+    </div>
+  </div>
+{% endblock %}
