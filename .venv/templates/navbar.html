@@ -1,17 +1,22 @@
+<head>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <title>{% block title %}{% endblock %}</title>
+</head>
 <body>
-    <nav class="navbar navbar-expand-lg " style="background-color: gray;">
-        <div class="container-fluid">
-          <a class="navbar-brand" href="{{url_for('index')}}">CODEMY</a>
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-            <div class="navbar-nav">
-              <a class="nav-link" href="{{url_for('register')}}">Register</a>
-              <a class="nav-link active" aria-current="page" href="{{url_for('logout')}}">Logout</a>
-              <a class="nav-link" href="{{url_for('login')}}">Login</a>
-            </div>
+  <nav class="navbar navbar-expand-lg " style="background-color: rgb(24, 24, 24);">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="{{url_for('index')}}">CODEMY</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+          <div class="navbar-nav">
+            <a class="nav-link" href="{{url_for('register')}}">Register</a>
+            <a class="nav-link active" aria-current="page" href="{{url_for('logout')}}">Logout</a>
+            <a class="nav-link" href="{{url_for('login')}}">Login</a>
           </div>
         </div>
-      </nav>
-    
+      </div>
+    </nav>
+</body>

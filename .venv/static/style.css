@@ -1,0 +1,16 @@
+/* styles.css */
+
+/* Change the color of the navbar links */
+.navbar .nav-link {
+    color: rgb(0, 0, 0) !important;  /* Change this to your desired color */
+}
+
+/* Change the color of the active navbar link */
+.navbar .nav-link.active {
+    color: rgb(0, 0, 0) !important;  /* Change this to your desired color */
+}
+
+/* Change the color of the navbar brand */
+.navbar .navbar-brand {
+    color: rgb(0, 0, 0) !important;  /* Change this to your desired color */
+}
