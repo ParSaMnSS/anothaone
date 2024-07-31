@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, flash
+from flask import Flask, render_template, request, redirect, flash, session
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, EqualTo
@@ -97,6 +97,8 @@ def protected():
 
 @app.route('/logout')
 def logout():
+    session.pop['email', None]
+    session.pop['password', None]
     return redirect('/login')
 
 @app.route('/home')
