@@ -5,15 +5,20 @@ from wtforms.validators import DataRequired, EqualTo
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 import sqlite3
+import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key'
-app.config['JWT_SECRET_KEY'] = 'your_jwt_secret_key'  #gotta change it
+app.config['SECRET_KEY'] = os.urandom(16).hex()
+app.config['JWT_SECRET_KEY'] = os.urandom(16).hex()
 jwt = JWTManager(app)
 
-
-conn = sqlite3.connect("db.sqlite3", check_same_thread=False)
-c = conn.cursor()
+# Connect to the database
+try:
+    conn = sqlite3.connect("db.sqlite3", check_same_thread=False)
+    c = conn.cursor()
+except sqlite3.Error as e:
+    print(f"Error connecting to the database: {e}")
+    exit(1)
 
 class RegistrationForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired()])
@@ -23,7 +28,7 @@ class RegistrationForm(FlaskForm):
         EqualTo('password', message='Passwords must match')
     ])
     submit = SubmitField('Register')
-    
+
 class LoginForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
@@ -69,7 +74,7 @@ def login():
                 flash('Wrong password')
             else:
                 access_token = create_access_token(identity=user[0])
-                return jsonify(access_token=access_token)
+                return redirect('/protected')
 
     return render_template('login.html', form=form)
 
@@ -77,7 +82,7 @@ def login():
 @jwt_required()
 def protected():
     current_user = get_jwt_identity()
-    return jsonify(logged_in_as=current_user), 200
+    return render_template('protected.html', user=current_user)
 
 @app.route('/logout')
 def logout():

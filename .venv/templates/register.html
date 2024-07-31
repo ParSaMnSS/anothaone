@@ -1,37 +1,35 @@
 <!-- register.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Register</title>
-</head>
-<body>
-    <form method="POST" action="">
-        {{ form.hidden_tag() }}
-        <div>
-            {{ form.email.label }}<br>
-            {{ form.email() }}<br>
-            {% for error in form.email.errors %}
-                <span>{{ error }}</span><br>
-            {% endfor %}
-        </div>
-        <div>
-            {{ form.password.label }}<br>
-            {{ form.password() }}<br>
-            {% for error in form.password.errors %}
-                <span>{{ error }}</span><br>
-            {% endfor %}
-        </div>
-        <div>
-            {{ form.confirmation.label }}<br>
-            {{ form.confirmation() }}<br>
-            {% for error in form.confirmation.errors %}
-                <span>{{ error }}</span><br>
-            {% endfor %}
-        </div>
-        <div>
-            {{ form.submit() }}
-        </div>
-    </form>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}
+    Register
+{% endblock %}
+
+{% block main %}
+<br>
+<form action="/register" method="POST" class="container-fluid">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+        {{ form.email.label(class="form-label") }}
+        {{ form.email(class="form-control", id="exampleInputEmail1", aria_describedby="emailHelp") }}
+        {% for error in form.email.errors %}
+            <small class="form-text text-danger">{{ error }}</small>
+        {% endfor %}
+        <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+    </div>
+    <div class="form-group">
+        {{ form.password.label(class="form-label") }}
+        {{ form.password(class="form-control", id="exampleInputPassword1") }}
+        {% for error in form.password.errors %}
+            <small class="form-text text-danger">{{ error }}</small>
+        {% endfor %}
+    </div>
+    <div class="form-group">
+        {{ form.confirmation.label(class="form-label") }}
+        {{ form.confirmation(class="form-control", id="exampleInputPassword2") }}
+        {% for error in form.confirmation.errors %}
+            <small class="form-text text-danger">{{ error }}</small>
+        {% endfor %}
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+{% endblock %}
