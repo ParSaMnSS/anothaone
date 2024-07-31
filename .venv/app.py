@@ -11,11 +11,10 @@ app.config['SECRET_KEY'] = 'your_secret_key'
 app.config['JWT_SECRET_KEY'] = 'your_jwt_secret_key'  #gotta change it
 jwt = JWTManager(app)
 
-# SQLite setup
+
 conn = sqlite3.connect("db.sqlite3", check_same_thread=False)
 c = conn.cursor()
 
-# Define WTForms
 class RegistrationForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
