@@ -13,28 +13,15 @@ app.config['JWT_SECRET_KEY'] = os.urandom(16).hex()
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 jwt = JWTManager(app)
+db = SQLAlchemy(app)
 
-# Connect to the SQLite database
-def get_db_connection():
-    conn = sqlite3.connect("db.sqlite3", check_same_thread=False)
-    return conn
-
-# Create users table if it doesn't exist
-def create_users_table():
-    conn = get_db_connection()
-    c = conn.cursor()
-    c.execute('''
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT UNIQUE NOT NULL,
-        password TEXT NOT NULL
-    )
-    ''')
-    conn.commit()
-    conn.close()
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
 
 class RegistrationForm(FlaskForm):
-    email = StringField('Email', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     confirmation = PasswordField('Confirm Password', validators=[
         DataRequired(),
@@ -43,9 +30,13 @@ class RegistrationForm(FlaskForm):
     submit = SubmitField('Register')
 
 class LoginForm(FlaskForm):
-    email = StringField('Email', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Login')
+
+@app.before_first_request
+def create_tables():
+    db.create_all()
 
 @app.route('/')
 def index():
@@ -58,18 +49,15 @@ def register():
         email = form.email.data
         password = form.password.data
 
-        conn = get_db_connection()
-        c = conn.cursor()
-        c.execute("SELECT * FROM users WHERE email=:email", {"email": email})
-        if c.fetchone():
+        if User.query.filter_by(email=email).first():
             flash('User already registered')
         else:
             passhash = generate_password_hash(password, method="pbkdf2:sha256", salt_length=16)
-            c.execute('INSERT INTO users (email, password) VALUES (:email, :passhash)', {"email": email, "passhash": passhash})
-            conn.commit()
+            new_user = User(email=email, password=passhash)
+            db.session.add(new_user)
+            db.session.commit()
             flash('Registered successfully')
             return redirect('/home')
-        conn.close()
 
     return render_template('register.html', form=form)
 
@@ -80,38 +68,38 @@ def login():
         email = form.email.data
         password = form.password.data
 
-        conn = get_db_connection()
-        c = conn.cursor()
-        c.execute("SELECT * FROM users WHERE email=:email", {"email": email})
-        user = c.fetchone()
+        user = User.query.filter_by(email=email).first()
 
-        if user is None:
-            flash('User not found')
+        if user and check_password_hash(user.password, password):
+            access_token = create_access_token(identity=user.id)
+            return jsonify(access_token=access_token)
         else:
-            passhash = user[2]
-            if not check_password_hash(passhash, password):
-                flash('Wrong password')
-            else:
-                access_token = create_access_token(identity=user[0])
-                return jsonify(access_token=access_token)
-        conn.close()
+            flash('Invalid email or password')
 
     return render_template('login.html', form=form)
 
 @app.route('/protected', methods=['GET'])
-@jwt_required(refresh=True)
+@jwt_required()
 def protected():
     current_user = get_jwt_identity()
     return render_template('protected.html', user=current_user)
 
 @app.route('/logout')
 def logout():
+    session.pop('email', None)
     return redirect('/login')
 
 @app.route('/home')
 def home():
     return render_template('home.html')
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return render_template('500.html'), 500
+
 if __name__ == '__main__':
-    create_users_table()
     app.run(debug=True)
