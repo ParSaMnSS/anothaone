@@ -5,6 +5,7 @@ from wtforms.validators import DataRequired, EqualTo, Email
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from flask_sqlalchemy import SQLAlchemy
+from flask_session import Session
 import os
 
 app = Flask(__name__)
@@ -14,6 +15,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 jwt = JWTManager(app)
 db = SQLAlchemy(app)
+Session(app)
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -34,7 +36,7 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Login')
 
-@app.before_first_request
+@app.before_request
 def create_tables():
     db.create_all()
 
@@ -86,7 +88,7 @@ def protected():
 
 @app.route('/logout')
 def logout():
-    session.pop('email', None)
+    session.pop('access_token', None)
     return redirect('/login')
 
 @app.route('/home')
