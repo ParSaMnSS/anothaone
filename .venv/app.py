@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, flash, session, jsonify
+from flask import Flask, render_template, request, redirect, flash, jsonify, session
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, EqualTo, Email
@@ -13,6 +13,7 @@ app.config['SECRET_KEY'] = os.urandom(16).hex()
 app.config['JWT_SECRET_KEY'] = os.urandom(16).hex()
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SESSION_TYPE'] = 'filesystem'
 jwt = JWTManager(app)
 db = SQLAlchemy(app)
 Session(app)
@@ -38,7 +39,9 @@ class LoginForm(FlaskForm):
 
 @app.before_request
 def create_tables():
-    db.create_all()
+    if not hasattr(app, 'tables_created'):
+        db.create_all()
+        app.tables_created = True
 
 @app.route('/')
 def index():
@@ -74,7 +77,8 @@ def login():
 
         if user and check_password_hash(user.password, password):
             access_token = create_access_token(identity=user.id)
-            return jsonify(access_token=access_token)
+            session['access_token'] = access_token
+            return redirect('/home')
         else:
             flash('Invalid email or password')
 
