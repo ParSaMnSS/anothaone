@@ -13,22 +13,23 @@ app.config['JWT_SECRET_KEY'] = os.urandom(16).hex()
 jwt = JWTManager(app)
 
 # Connect to the SQLite database
-try:
+def get_db_connection():
     conn = sqlite3.connect("db.sqlite3", check_same_thread=False)
-    c = conn.cursor()  #cursor: pointer that allows to execute SQL queries and fetch results
-except sqlite3.Error as e:
-    print(f"Error connecting to the database: {e}")
-    exit(1)
+    return conn
 
 # Create users table if it doesn't exist
-c.execute('''
-CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL
-)
-''')
-conn.commit()
+def create_users_table():
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute('''
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL
+    )
+    ''')
+    conn.commit()
+    conn.close()
 
 class RegistrationForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired()])
@@ -55,15 +56,18 @@ def register():
         email = form.email.data
         password = form.password.data
 
+        conn = get_db_connection()
+        c = conn.cursor()
         c.execute("SELECT * FROM users WHERE email=:email", {"email": email})
         if c.fetchone():
             flash('User already registered')
         else:
-            passhash = generate_password_hash(password, method="pbkdf2:sha256", salt_length=8)
+            passhash = generate_password_hash(password, method="pbkdf2:sha256", salt_length=16)
             c.execute('INSERT INTO users (email, password) VALUES (:email, :passhash)', {"email": email, "passhash": passhash})
             conn.commit()
             flash('Registered successfully')
             return redirect('/home')
+        conn.close()
 
     return render_template('register.html', form=form)
 
@@ -71,9 +75,11 @@ def register():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        email = form.email.data # gets the value entered in the email field of the form
+        email = form.email.data
         password = form.password.data
 
+        conn = get_db_connection()
+        c = conn.cursor()
         c.execute("SELECT * FROM users WHERE email=:email", {"email": email})
         user = c.fetchone()
 
@@ -85,20 +91,22 @@ def login():
                 flash('Wrong password')
             else:
                 access_token = create_access_token(identity=user[0])
+                session['access_token'] = access_token
+                flash('Logged in successfully')
                 return redirect('/protected')
+        conn.close()
 
     return render_template('login.html', form=form)
 
 @app.route('/protected', methods=['GET'])
-@jwt_required()
+@jwt_required(refresh=True)
 def protected():
     current_user = get_jwt_identity()
     return render_template('protected.html', user=current_user)
 
 @app.route('/logout')
 def logout():
-    session.pop['email', None]
-    session.pop['password', None]
+    session.pop('access_token', None)
     return redirect('/login')
 
 @app.route('/home')
@@ -106,4 +114,5 @@ def home():
     return render_template('home.html')
 
 if __name__ == '__main__':
+    create_users_table()
     app.run(debug=True)
