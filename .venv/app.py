@@ -15,7 +15,7 @@ jwt = JWTManager(app)
 # Connect to the SQLite database
 try:
     conn = sqlite3.connect("db.sqlite3", check_same_thread=False)
-    c = conn.cursor()
+    c = conn.cursor()  #cursor: pointer that allows to execute SQL queries and fetch results
 except sqlite3.Error as e:
     print(f"Error connecting to the database: {e}")
     exit(1)
@@ -71,7 +71,7 @@ def register():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        email = form.email.data
+        email = form.email.data # gets the value entered in the email field of the form
         password = form.password.data
 
         c.execute("SELECT * FROM users WHERE email=:email", {"email": email})
