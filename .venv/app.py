@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, flash, session
+from flask import Flask, render_template, request, redirect, flash, session, jsonify
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, EqualTo
@@ -91,9 +91,7 @@ def login():
                 flash('Wrong password')
             else:
                 access_token = create_access_token(identity=user[0])
-                session['access_token'] = access_token
-                flash('Logged in successfully')
-                return redirect('/protected')
+                return jsonify(access_token=access_token)
         conn.close()
 
     return render_template('login.html', form=form)
@@ -106,7 +104,6 @@ def protected():
 
 @app.route('/logout')
 def logout():
-    session.pop('access_token', None)
     return redirect('/login')
 
 @app.route('/home')
