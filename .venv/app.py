@@ -51,10 +51,10 @@ def index():
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        email = form.email.data
-        password = form.password.data
+        email = form.email.data # extracts the data and assigns it to 'email'
+        password = form.password.data #same but for password
 
-        if User.query.filter_by(email=email).first():
+        if User.query.filter_by(email=email).first():  #to check if the email adress already exists
             flash('User already registered')
         else:
             passhash = generate_password_hash(password, method="pbkdf2:sha256", salt_length=16)
